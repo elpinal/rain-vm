@@ -1,0 +1,15 @@
+@require: code
+@require: stdja
+
+StdJa.document (|
+  title = {Overview};
+  author = {El Pin Al};
+  show-title = true;
+  show-toc = false;
+|) '<
+  +p {
+    The file extension for programs of Rain VM is \code(`rvm`);.
+    For example, \code(`list.rvm`); is a valid filename as a Rain VM program.
+    However, using other extensions or omitting extensions is of course allowed.
+  }
+>
