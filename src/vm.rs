@@ -26,6 +26,10 @@ pub enum ExecutionError {
     /// File-open error.
     #[fail(display = "opening file {:?}: {}", filename, error)]
     FileOpen { filename: String, error: io::Error },
+
+    /// Reached the unexpected end of program.
+    #[fail(display = "unexpected end of program")]
+    UnexpectedEndOfProgram,
 }
 
 /// Executes a file.
@@ -43,13 +47,15 @@ pub fn execute_file(filename: &str) -> Result<u8, Error> {
 pub fn execute_bytes(v: Vec<u8>) -> Result<u8, ExecutionError> {
     let mut iter = v.into_iter();
     match iter.next() {
-        None => Err(ExecutionError::MissingVersion),
+        None => return Err(ExecutionError::MissingVersion),
         Some(b) => {
-            if b == version::BYTE_VERSION {
-                Ok(0)
-            } else {
-                Err(ExecutionError::VersionMismatch { version: b })
+            if b != version::BYTE_VERSION {
+                return Err(ExecutionError::VersionMismatch { version: b });
             }
         }
+    }
+    match iter.next() {
+        None => Err(ExecutionError::UnexpectedEndOfProgram),
+        Some(b) => Ok(b),
     }
 }
