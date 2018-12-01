@@ -50,6 +50,8 @@ StdJa.document (|
 
   +p {
     If the version check passed, the body of the program is executed.
-    The first byte of the body (that is, the second byte of the program) will be the result of the execution.
+    The first byte of the body (that is, the second byte of the program) will be placed into the result register, R0.
+    The result register is a special register whose content is treated as the output of the execution.
+    After reading the first byte of the body, the execution ends successfully.
   }
 >
