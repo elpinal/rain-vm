@@ -15,10 +15,6 @@ pub enum ExecutionError {
     #[fail(display = "missing version")]
     MissingVersion,
 
-    /// Given an unknown version.
-    #[fail(display = "unknown version: {}", version)]
-    UnknownVersion { version: u8 },
-
     /// Given a mismatched version.
     #[fail(display = "version mismatch: {}", version)]
     VersionMismatch { version: u8 },
