@@ -5,5 +5,4 @@
 ## What is Rain ML?
 
 Rain ML is a high-level programming language.
-The repository will be [github.com/elpinal/rain-ml](https://github.com/elpinal/rain-ml),
-but not yet published.
+The repository is [github.com/elpinal/rain-ml](https://github.com/elpinal/rain-ml).
