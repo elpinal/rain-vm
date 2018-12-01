@@ -1,6 +1,7 @@
 //! Rain VM: A virtual machine for Rain ML.
 
-use std::fs::File;
+use std::collections::HashMap;
+use std::fs;
 use std::io;
 use std::io::Read;
 
@@ -26,11 +27,15 @@ pub enum ExecutionError {
     /// Reached the unexpected end of program.
     #[fail(display = "unexpected end of program")]
     UnexpectedEndOfProgram,
+
+    /// No result in the result register, `R0`.
+    #[fail(display = "no result in the result register")]
+    NoResult,
 }
 
 /// Executes a file.
-pub fn execute_file(filename: &str) -> Result<u8, Error> {
-    let f = File::open(filename).map_err(|e| ExecutionError::FileOpen {
+pub fn execute_file(filename: &str) -> Result<u32, Error> {
+    let f = fs::File::open(filename).map_err(|e| ExecutionError::FileOpen {
         filename: filename.to_string(),
         error: e,
     })?;
@@ -40,18 +45,39 @@ pub fn execute_file(filename: &str) -> Result<u8, Error> {
 }
 
 /// Executes a sequence of bytes.
-pub fn execute_bytes(v: Vec<u8>) -> Result<u8, ExecutionError> {
-    let mut iter = v.into_iter();
-    match iter.next() {
-        None => return Err(ExecutionError::MissingVersion),
-        Some(b) => {
-            if b != version::BYTE_VERSION {
-                return Err(ExecutionError::VersionMismatch { version: b });
+pub fn execute_bytes(v: Vec<u8>) -> Result<u32, ExecutionError> {
+    let mut f = File(HashMap::new());
+    f.execute_bytes(v)?;
+    f.get(Reg(0)).ok_or(ExecutionError::NoResult)
+}
+
+#[derive(PartialEq, Eq, Hash)]
+struct Reg(u8);
+
+struct File(HashMap<Reg, u32>);
+
+impl File {
+    /// Executes a sequence of bytes.
+    pub fn execute_bytes(&mut self, v: Vec<u8>) -> Result<(), ExecutionError> {
+        let mut iter = v.into_iter();
+        match iter.next() {
+            None => return Err(ExecutionError::MissingVersion),
+            Some(b) => {
+                if b != version::BYTE_VERSION {
+                    return Err(ExecutionError::VersionMismatch { version: b });
+                }
+            }
+        }
+        match iter.next() {
+            None => Err(ExecutionError::UnexpectedEndOfProgram),
+            Some(b) => {
+                self.0.insert(Reg(0), b.into());
+                Ok(())
             }
         }
     }
-    match iter.next() {
-        None => Err(ExecutionError::UnexpectedEndOfProgram),
-        Some(b) => Ok(b),
+
+    fn get(&self, r: Reg) -> Option<u32> {
+        self.0.get(&r).map(|&x| x)
     }
 }
