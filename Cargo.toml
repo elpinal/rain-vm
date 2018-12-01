@@ -5,3 +5,4 @@ authors = ["elpinal"]
 edition = "2018"
 
 [dependencies]
+failure = "0.1.3"
