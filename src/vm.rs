@@ -90,7 +90,7 @@ where
     for _ in 0..4 {
         let n: u32 = (*iter.next().ok_or(ExecutionError::TruncatedU32)?).into();
         u <<= 8;
-        u += n;
+        u |= n;
     }
     Ok(u)
 }
