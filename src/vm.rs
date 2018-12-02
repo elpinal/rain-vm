@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::Read;
-use std::slice;
 
 use failure::Error;
 
@@ -83,7 +82,10 @@ impl File {
     }
 }
 
-fn decode_u32(iter: &mut slice::Iter<u8>) -> Result<u32, ExecutionError> {
+fn decode_u32<'a, T>(iter: &mut T) -> Result<u32, ExecutionError>
+where
+    T: Iterator<Item = &'a u8>,
+{
     let mut u: u32 = 0;
     for _ in 0..4 {
         let n: u32 = (*iter.next().ok_or(ExecutionError::TruncatedU32)?).into();
