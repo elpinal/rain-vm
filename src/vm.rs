@@ -86,7 +86,7 @@ fn decode_u32<'a, T>(iter: &mut T) -> Result<u32, ExecutionError>
 where
     T: Iterator<Item = &'a u8>,
 {
-    let mut u: u32 = 0;
+    let mut u = 0;
     for _ in 0..4 {
         let n: u32 = (*iter.next().ok_or(ExecutionError::TruncatedU32)?).into();
         u <<= 8;
