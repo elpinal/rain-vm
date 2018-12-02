@@ -92,3 +92,18 @@ fn decode_u32(iter: &mut slice::Iter<u8>) -> Result<u32, ExecutionError> {
     }
     Ok(u)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode_u32() {
+        assert_eq!(decode_u32(&mut vec![0, 0, 0, 0].iter()).ok(), Some(0));
+        assert_eq!(decode_u32(&mut vec![0, 0, 0, 1].iter()).ok(), Some(1));
+        assert_eq!(
+            decode_u32(&mut vec![1, 0, 18, 1].iter()).ok(),
+            Some(16781825)
+        );
+    }
+}
