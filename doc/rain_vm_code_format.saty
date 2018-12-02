@@ -12,6 +12,10 @@ StdJa.document (|
     Words are represented in big-endian format.
   }
 
+  +p {
+    There are 32 registers.
+  }
+
   +section {How programs are executed} <
     +p {
       The first byte of an input program denotes the byte version.
@@ -55,10 +59,13 @@ StdJa.document (|
     }
 
     +p {
-      If the version check passed, the body of the program is executed.
-      The first 4 bytes of the body (that is, the second byte to the fifth byte of the program) will be decoded as a 4-byte integer and placed into the result register, R0.
-      The result register is a special register whose content is treated as the output of the execution.
-      After reading the first byte of the body, the execution ends successfully.
+      After passing the version check, then the body of the program is executed.
+      The first byte of the body contains an opcode.
+      An opcode is the 5 most significant bits.
+      Currently, the only opcode is 0, indicating "move" instructions.
+
+      The result register, R0, is a special register whose content is treated as the output of the execution.
+      After reading the first instruction, the execution ends successfully.
     }
   >
 >
