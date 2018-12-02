@@ -35,6 +35,10 @@ pub enum ExecutionError {
     /// 32-bit integers should have 4 bytes, but there are fewer bytes.
     #[fail(display = "truncated 32-bit integer")]
     TruncatedU32,
+
+    /// Given an unknown opcode.
+    #[fail(display = "no such instruction: {}", opcode)]
+    NoSuchInstruction { opcode: u8 },
 }
 
 /// Executes a file.
@@ -60,6 +64,8 @@ struct Reg(u8);
 
 struct File(HashMap<Reg, u32>);
 
+const OPCODE_MASK: u8 = 0b1111_1000;
+
 impl File {
     /// Executes a sequence of bytes.
     pub fn execute_bytes(&mut self, v: Vec<u8>) -> Result<(), ExecutionError> {
@@ -72,13 +78,43 @@ impl File {
                 }
             }
         }
-        let w = decode_u32(&mut iter)?;
-        self.0.insert(Reg(0), w);
+        match iter.next() {
+            None => return Err(ExecutionError::UnexpectedEndOfProgram),
+            Some(&b) => {
+                match b & OPCODE_MASK {
+                    0 => {
+                        // Move.
+                        if b & 0b100 == 0 {
+                            unimplemented!(); // Register to register.
+                        } else {
+                            self.mov_imm(&mut iter)?;
+                        }
+                    }
+                    b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
+                }
+            }
+        }
         Ok(())
     }
 
     fn get(&self, r: Reg) -> Option<u32> {
         self.0.get(&r).cloned()
+    }
+
+    fn insert(&mut self, r: Reg, w: u32) {
+        self.0.insert(r, w);
+    }
+
+    /// "Move immediate" instruction.
+    fn mov_imm<'a, T>(&mut self, iter: &mut T) -> Result<(), ExecutionError>
+    where
+        T: Iterator<Item = &'a u8>,
+    {
+        let b = iter.next().ok_or(ExecutionError::UnexpectedEndOfProgram)? & 0b11111;
+        let r = Reg(b);
+        let w = decode_u32(iter)?;
+        self.insert(r, w);
+        Ok(())
     }
 }
 
