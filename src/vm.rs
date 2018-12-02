@@ -73,13 +73,9 @@ impl File {
                 }
             }
         }
-        match iter.next() {
-            None => Err(ExecutionError::UnexpectedEndOfProgram),
-            Some(&b) => {
-                self.0.insert(Reg(0), b.into());
-                Ok(())
-            }
-        }
+        let w = decode_u32(&mut iter)?;
+        self.0.insert(Reg(0), w);
+        Ok(())
     }
 
     fn get(&self, r: Reg) -> Option<u32> {
@@ -87,7 +83,7 @@ impl File {
     }
 }
 
-fn decode_u32(mut iter: slice::Iter<u8>) -> Result<u32, ExecutionError> {
+fn decode_u32(iter: &mut slice::Iter<u8>) -> Result<u32, ExecutionError> {
     let mut u: u32 = 0;
     for _ in 0..4 {
         let n: u32 = (*iter.next().ok_or(ExecutionError::TruncatedU32)?).into();
