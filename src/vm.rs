@@ -78,7 +78,7 @@ impl File {
     }
 
     fn get(&self, r: Reg) -> Option<u32> {
-        self.0.get(&r).map(|&x| x)
+        self.0.get(&r).cloned()
     }
 }
 
