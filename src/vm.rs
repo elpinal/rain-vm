@@ -99,10 +99,16 @@ where
 mod tests {
     use super::*;
 
+    macro_rules! decode_u32_ok {
+        ($x:expr, $r:expr) => {
+            assert_eq!(decode_u32(&mut $x.iter()).ok(), Some($r));
+        };
+    }
+
     #[test]
     fn test_decode_u32() {
-        assert_eq!(decode_u32(&mut [0, 0, 0, 0].iter()).ok(), Some(0));
-        assert_eq!(decode_u32(&mut [0, 0, 0, 1].iter()).ok(), Some(1));
-        assert_eq!(decode_u32(&mut [1, 0, 18, 1].iter()).ok(), Some(16781825));
+        decode_u32_ok!([0, 0, 0, 0], 0);
+        decode_u32_ok!([0, 0, 0, 1], 1);
+        decode_u32_ok!([1, 0, 18, 1], 16781825);
     }
 }
