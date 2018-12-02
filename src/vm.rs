@@ -98,6 +98,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::mem::discriminant;
 
     macro_rules! decode_u32_ok {
         ($x:expr, $r:expr) => {
@@ -105,10 +106,29 @@ mod tests {
         };
     }
 
+    macro_rules! decode_u32_err {
+        ($x:expr) => {
+            assert_eq!(
+                discriminant(&decode_u32(&mut $x.iter()).err().unwrap()),
+                discriminant(&ExecutionError::TruncatedU32)
+            );
+        };
+    }
+
     #[test]
     fn test_decode_u32() {
         decode_u32_ok!([0, 0, 0, 0], 0);
         decode_u32_ok!([0, 0, 0, 1], 1);
+        decode_u32_ok!([0, 0, 34, 130], 8834);
         decode_u32_ok!([1, 0, 18, 1], 16781825);
+        decode_u32_ok!([255; 4], 4294967295);
+
+        decode_u32_err!([]);
+        decode_u32_err!([100]);
+        decode_u32_err!([20; 2]);
+        decode_u32_err!([7; 3]);
+
+        decode_u32_ok!([7; 5], 117901063);
+        decode_u32_ok!([1, 2, 3, 4, 5], 16909060);
     }
 }
