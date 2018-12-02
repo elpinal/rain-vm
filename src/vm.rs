@@ -99,6 +99,7 @@ where
 mod tests {
     use super::*;
     use std::mem::discriminant;
+    use test::Bencher;
 
     macro_rules! decode_u32_ok {
         ($x:expr, $r:expr) => {
@@ -130,5 +131,15 @@ mod tests {
 
         decode_u32_ok!([7; 5], 117901063);
         decode_u32_ok!([1, 2, 3, 4, 5], 16909060);
+    }
+
+    #[bench]
+    fn bench_decode_u32_1(b: &mut Bencher) {
+        b.iter(|| decode_u32(&mut [0, 0, 0, 0].iter()));
+    }
+
+    #[bench]
+    fn bench_decode_u32_2(b: &mut Bencher) {
+        b.iter(|| decode_u32(&mut [255; 4].iter()));
     }
 }
