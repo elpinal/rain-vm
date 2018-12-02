@@ -101,11 +101,8 @@ mod tests {
 
     #[test]
     fn test_decode_u32() {
-        assert_eq!(decode_u32(&mut vec![0, 0, 0, 0].iter()).ok(), Some(0));
-        assert_eq!(decode_u32(&mut vec![0, 0, 0, 1].iter()).ok(), Some(1));
-        assert_eq!(
-            decode_u32(&mut vec![1, 0, 18, 1].iter()).ok(),
-            Some(16781825)
-        );
+        assert_eq!(decode_u32(&mut [0, 0, 0, 0].iter()).ok(), Some(0));
+        assert_eq!(decode_u32(&mut [0, 0, 0, 1].iter()).ok(), Some(1));
+        assert_eq!(decode_u32(&mut [1, 0, 18, 1].iter()).ok(), Some(16781825));
     }
 }
