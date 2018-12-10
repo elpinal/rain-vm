@@ -64,7 +64,8 @@ struct Reg(u8);
 
 struct File(HashMap<Reg, u32>);
 
-const OPCODE_MASK: u8 = 0b1111_1000;
+// Shifts 3 bits.
+const SHIFT_OPCODE: u8 = 3;
 
 const OPCODE_MOVE: u8 = 0;
 const OPCODE_HALT: u8 = 1;
@@ -85,7 +86,7 @@ impl File {
             match iter.next() {
                 None => return Err(ExecutionError::UnexpectedEndOfProgram),
                 Some(&b) => {
-                    match b & OPCODE_MASK {
+                    match b >> SHIFT_OPCODE {
                         OPCODE_MOVE => {
                             // Move.
                             if b & 0b100 == 0 {
