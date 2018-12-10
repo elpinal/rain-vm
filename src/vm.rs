@@ -66,6 +66,8 @@ struct File(HashMap<Reg, u32>);
 
 const OPCODE_MASK: u8 = 0b1111_1000;
 
+const OPCODE_MOVE: u8 = 0;
+
 impl File {
     /// Executes a sequence of bytes.
     pub fn execute_bytes(&mut self, v: Vec<u8>) -> Result<(), ExecutionError> {
@@ -82,7 +84,7 @@ impl File {
             None => return Err(ExecutionError::UnexpectedEndOfProgram),
             Some(&b) => {
                 match b & OPCODE_MASK {
-                    0 => {
+                    OPCODE_MOVE => {
                         // Move.
                         if b & 0b100 == 0 {
                             unimplemented!(); // Register to register.
