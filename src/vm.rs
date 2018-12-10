@@ -67,6 +67,7 @@ struct File(HashMap<Reg, u32>);
 const OPCODE_MASK: u8 = 0b1111_1000;
 
 const OPCODE_MOVE: u8 = 0;
+const OPCODE_HALT: u8 = 1;
 
 impl File {
     /// Executes a sequence of bytes.
@@ -80,23 +81,27 @@ impl File {
                 }
             }
         }
-        match iter.next() {
-            None => return Err(ExecutionError::UnexpectedEndOfProgram),
-            Some(&b) => {
-                match b & OPCODE_MASK {
-                    OPCODE_MOVE => {
-                        // Move.
-                        if b & 0b100 == 0 {
-                            unimplemented!(); // Register to register.
-                        } else {
-                            self.mov_imm(&mut iter)?;
+        loop {
+            match iter.next() {
+                None => return Err(ExecutionError::UnexpectedEndOfProgram),
+                Some(&b) => {
+                    match b & OPCODE_MASK {
+                        OPCODE_MOVE => {
+                            // Move.
+                            if b & 0b100 == 0 {
+                                unimplemented!(); // Register to register.
+                            } else {
+                                self.mov_imm(&mut iter)?;
+                            }
                         }
+                        OPCODE_HALT => {
+                            return Ok(());
+                        }
+                        b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
                     }
-                    b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
                 }
             }
         }
-        Ok(())
     }
 
     fn get(&self, r: Reg) -> Option<u32> {
