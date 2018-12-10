@@ -62,7 +62,7 @@ StdJa.document (|
       After passing the version check, then the body of the program is executed.
       The first byte of the body contains an opcode.
       An opcode is the 5 most significant bits.
-      Currently, the only opcode is 0, indicating "move" instructions.
+      Currently, the only opcode is 0, indicating "move" instruction.
 
       The result register, R0, is a special register whose content is treated as the output of the execution.
       After reading the first instruction, the execution ends successfully.
