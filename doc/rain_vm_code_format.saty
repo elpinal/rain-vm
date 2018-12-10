@@ -18,8 +18,8 @@ StdJa.document (|
 
   +section {How programs are executed} <
     +p {
-      The first byte of an input program denotes the byte version.
-      There is a correspondence between byte versions and dominant versions.
+      The first byte of an input program denotes the \emph{byte version}.
+      There is a correspondence between byte versions and \emph{dominant versions}.
     }
 
     +p {
@@ -64,7 +64,7 @@ StdJa.document (|
       An opcode is the 5 most significant bits.
       Currently, the only opcode is 0, indicating "move" instruction.
 
-      The result register, R0, is a special register whose content is treated as the output of the execution.
+      \emph{The result register}, R0, is a special register whose content is treated as the output of the execution.
       After reading the first instruction, the execution ends successfully.
     }
   >
