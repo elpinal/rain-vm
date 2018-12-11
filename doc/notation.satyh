@@ -1,0 +1,8 @@
+module Notation : sig
+  direct \quote : [inline-text] inline-cmd
+end = struct
+  let-inline ctx \quote inner =
+    let left = read-inline ctx (embed-string `“`) in
+    let right = read-inline ctx (embed-string `”`) in
+      left ++ read-inline ctx inner ++ right
+end
