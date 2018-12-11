@@ -88,31 +88,27 @@ impl File {
             }
         }
         loop {
-            match iter.next() {
-                None => return Err(ExecutionError::UnexpectedEndOfProgram),
-                Some(&b) => {
-                    match b >> SHIFT_OPCODE {
-                        OPCODE_MOVE => {
-                            // Move.
-                            if b & 0b100 == 0 {
-                                unimplemented!(); // Register to register.
-                            } else {
-                                self.mov_imm(&mut iter)?;
-                            }
-                        }
-                        OPCODE_HALT => return Ok(()),
-                        OPCODE_ADD => {
-                            // Add.
-                            let bits = b & 0b11;
-                            if b & 0b100 == 0 {
-                                unimplemented!(); // Register-register operation.
-                            } else {
-                                self.add_imm(&mut iter, bits)?;
-                            }
-                        }
-                        b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
+            let b = *must_next(&mut iter)?;
+            match b >> SHIFT_OPCODE {
+                OPCODE_MOVE => {
+                    // Move.
+                    if b & 0b100 == 0 {
+                        unimplemented!(); // Register to register.
+                    } else {
+                        self.mov_imm(&mut iter)?;
                     }
                 }
+                OPCODE_HALT => return Ok(()),
+                OPCODE_ADD => {
+                    // Add.
+                    let bits = b & 0b11;
+                    if b & 0b100 == 0 {
+                        unimplemented!(); // Register-register operation.
+                    } else {
+                        self.add_imm(&mut iter, bits)?;
+                    }
+                }
+                b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
             }
         }
     }
@@ -130,7 +126,7 @@ impl File {
     where
         T: Iterator<Item = &'a u8>,
     {
-        let b = iter.next().ok_or(ExecutionError::UnexpectedEndOfProgram)? & 0b11111;
+        let b = must_next(iter)? & 0b11111;
         let r = Reg(b);
         let w = decode_u32(iter)?;
         self.insert(r, w);
@@ -144,7 +140,7 @@ impl File {
     where
         T: Iterator<Item = &'a u8>,
     {
-        let b = iter.next().ok_or(ExecutionError::UnexpectedEndOfProgram)?;
+        let b = must_next(iter)?;
         let lower = b >> 5;
         let upper = extra_bits << 3;
         let src = Reg(lower | upper);
@@ -169,6 +165,13 @@ where
         u |= n;
     }
     Ok(u)
+}
+
+fn must_next<'a, T>(iter: &mut T) -> Result<&'a u8, ExecutionError>
+where
+    T: Iterator<Item = &'a u8>,
+{
+    iter.next().ok_or(ExecutionError::UnexpectedEndOfProgram)
 }
 
 #[cfg(test)]
