@@ -100,9 +100,7 @@ impl File {
                                 self.mov_imm(&mut iter)?;
                             }
                         }
-                        OPCODE_HALT => {
-                            return Ok(());
-                        }
+                        OPCODE_HALT => return Ok(()),
                         OPCODE_ADD => {
                             // Add.
                             let bits = b & 0b11;
