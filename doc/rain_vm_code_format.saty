@@ -62,7 +62,9 @@ StdJa.document (|
       After passing the version check, then the body of the program is executed.
       The first byte of the body contains an opcode.
       An opcode is the 5 most significant bits.
-      Currently, the only opcodes are 0, indicating "move" instruction, and 1, indicating "halt" instruction.
+      Currently, the only opcodes are 0, indicating "move" instruction,
+      1, indicating "halt" instruction,
+      and 2, indicating "add" instruction.
 
       \emph{The result register}, R0, is a special register whose content is treated as the output of the execution.
       Reading instructions until reaching a "halt" instruction, and then the execution ends successfully.
