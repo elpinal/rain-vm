@@ -39,6 +39,10 @@ pub enum ExecutionError {
     /// Given an unknown opcode.
     #[fail(display = "no such instruction: {}", opcode)]
     NoSuchInstruction { opcode: u8 },
+
+    /// No such register.
+    #[fail(display = "no such register: {:?}", reg)]
+    NoSuchRegister { reg: Reg },
 }
 
 /// Executes a file.
@@ -56,11 +60,11 @@ pub fn execute_file(filename: &str) -> Result<u32, Error> {
 pub fn execute_bytes(v: Vec<u8>) -> Result<u32, ExecutionError> {
     let mut f = File(HashMap::new());
     f.execute_bytes(v)?;
-    f.get(Reg(0)).ok_or(ExecutionError::NoResult)
+    f.get(&Reg(0)).ok_or(ExecutionError::NoResult)
 }
 
-#[derive(PartialEq, Eq, Hash)]
-struct Reg(u8);
+#[derive(PartialEq, Eq, Hash, Debug)]
+pub struct Reg(u8);
 
 struct File(HashMap<Reg, u32>);
 
@@ -69,6 +73,7 @@ const SHIFT_OPCODE: u8 = 3;
 
 const OPCODE_MOVE: u8 = 0;
 const OPCODE_HALT: u8 = 1;
+const OPCODE_ADD: u8 = 2;
 
 impl File {
     /// Executes a sequence of bytes.
@@ -98,6 +103,15 @@ impl File {
                         OPCODE_HALT => {
                             return Ok(());
                         }
+                        OPCODE_ADD => {
+                            // Add.
+                            let bits = b & 0b11;
+                            if b & 0b100 == 0 {
+                                unimplemented!(); // Register-register operation.
+                            } else {
+                                self.add_imm(&mut iter, bits)?;
+                            }
+                        }
                         b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
                     }
                 }
@@ -105,8 +119,8 @@ impl File {
         }
     }
 
-    fn get(&self, r: Reg) -> Option<u32> {
-        self.0.get(&r).cloned()
+    fn get(&self, r: &Reg) -> Option<u32> {
+        self.0.get(r).cloned()
     }
 
     fn insert(&mut self, r: Reg, w: u32) {
@@ -122,6 +136,26 @@ impl File {
         let r = Reg(b);
         let w = decode_u32(iter)?;
         self.insert(r, w);
+        Ok(())
+    }
+
+    /// "Add immediate" instruction.
+    /// The parameter `extra_bits` is assumed to be a two-bit integer.
+    /// Arithmetic overflow is ignored.
+    fn add_imm<'a, T>(&mut self, iter: &mut T, extra_bits: u8) -> Result<(), ExecutionError>
+    where
+        T: Iterator<Item = &'a u8>,
+    {
+        let b = iter.next().ok_or(ExecutionError::UnexpectedEndOfProgram)?;
+        let lower = b >> 5;
+        let upper = extra_bits << 3;
+        let src = Reg(lower | upper);
+
+        let w = decode_u32(iter)?;
+        let v = self
+            .get(&src)
+            .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
+        self.insert(Reg(b & 0b11111), v + w);
         Ok(())
     }
 }
