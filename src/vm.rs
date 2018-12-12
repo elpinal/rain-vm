@@ -93,7 +93,7 @@ impl File {
                 OPCODE_MOVE => {
                     // Move.
                     if b & 0b100 == 0 {
-                        unimplemented!(); // Register to register.
+                        self.mov_reg(&mut iter, b & 0b11)?;
                     } else {
                         self.mov_imm(&mut iter)?;
                     }
@@ -119,6 +119,24 @@ impl File {
 
     fn insert(&mut self, r: Reg, w: u32) {
         self.0.insert(r, w);
+    }
+
+    /// "Move register" instruction.
+    /// The parameter `extra_bits` is assumed to be a two-bit integer.
+    fn mov_reg<'a, T>(&mut self, iter: &mut T, extra_bits: u8) -> Result<(), ExecutionError>
+    where
+        T: Iterator<Item = &'a u8>,
+    {
+        let b = must_next(iter)?;
+        let lower = b >> 5;
+        let upper = extra_bits << 3;
+        let src = Reg(lower | upper);
+
+        let v = self
+            .get(&src)
+            .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
+        self.insert(Reg(b & 0b11111), v);
+        Ok(())
     }
 
     /// "Move immediate" instruction.
