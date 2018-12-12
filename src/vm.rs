@@ -149,7 +149,7 @@ impl File {
         let v = self
             .get(&src)
             .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
-        self.insert(Reg(b & 0b11111), v + w);
+        self.insert(Reg(b & 0b11111), v.wrapping_add(w));
         Ok(())
     }
 }
