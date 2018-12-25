@@ -103,7 +103,7 @@ impl File {
                     // Add.
                     let bits = b & 0b11;
                     if b & 0b100 == 0 {
-                        unimplemented!(); // Register-register operation.
+                        self.add_reg(&mut iter, bits)?;
                     } else {
                         self.add_imm(&mut iter, bits)?;
                     }
@@ -148,6 +148,30 @@ impl File {
         let r = Reg(b);
         let w = decode_u32(iter)?;
         self.insert(r, w);
+        Ok(())
+    }
+
+    /// "Add register" instruction.
+    /// The parameter `extra_bits` is assumed to be a two-bit integer.
+    /// Arithmetic overflow is ignored.
+    fn add_reg<'a, T>(&mut self, iter: &mut T, extra_bits: u8) -> Result<(), ExecutionError>
+    where
+        T: Iterator<Item = &'a u8>,
+    {
+        let b = must_next(iter)?;
+        let lower = b >> 5;
+        let upper = extra_bits << 3;
+        let src1 = Reg(lower | upper);
+        let src2 = Reg(b & 0b11111);
+
+        let dest = Reg(must_next(iter)? >> 3);
+        let v1 = self
+            .get(&src1)
+            .ok_or(ExecutionError::NoSuchRegister { reg: src1 })?;
+        let v2 = self
+            .get(&src2)
+            .ok_or(ExecutionError::NoSuchRegister { reg: src2 })?;
+        self.insert(dest, v1.wrapping_add(v2));
         Ok(())
     }
 
