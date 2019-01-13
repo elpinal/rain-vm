@@ -1,5 +1,5 @@
 @require: stdja
-@require: tabular
+@require: table
 
 @import: notation
 
@@ -25,29 +25,35 @@ StdJa.document (|
     }
 
     +p {
-      \tabular(fun cellf multif empty -> [
-        [cellf {Byte Version}; cellf {Dominant Version}];
-        [cellf {0}           ; cellf {unused}];
-        [cellf {1}           ; cellf {0.1.0}];
-      ])(fun xs ys -> (
+      \tabular(fun t -> (
+      let (c, l, r) = (t#c, t#l, t#r) in
+      let m = t#m in
+      let e = t#e in
+      [
+        [c {Byte Version}; c {Dominant Version}];
+        [c {0}           ; c {unused}];
+        [c {1}           ; c {0.1.0}];
+      ]))(fun xs ys -> (
+        let thin = 0.5pt in
+        let thick = 1pt in
           match (ys, List.reverse ys) with
           | (y0 :: y1 :: _, ylast :: _) ->
               ( match (xs, List.reverse xs) with
                 | (x0 :: x1 :: _, xlast :: _) ->
                     let grlstY1 =
                       [y1] |> List.map (fun y ->
-                        stroke 0.5pt Color.black (Gr.line (x0, y) (xlast, y)))
+                        stroke thin Color.black (Gr.line (x0, y) (xlast, y)))
                     in
                     let grlstY2 =
                       [y0; ylast] |> List.map (fun y ->
-                        stroke 1pt Color.black (Gr.line (x0, y) (xlast, y)))
+                        stroke thick Color.black (Gr.line (x0, y) (xlast, y)))
                     in
                     let grlstX =
                       [x1] |> List.map (fun x ->
-                        stroke 0.5pt Color.black (Gr.line (x, y0) (x, ylast)))
+                        stroke thin Color.black (Gr.line (x, y0) (x, ylast)))
                     in
-                    (stroke 0.5pt Color.black (Gr.line (x0, y1) (x1, y1)))
-                      :: (List.append grlstX (List.append grlstY1 grlstY2))
+                    stroke thin Color.black (Gr.line (x0, y1) (x1, y1))
+                      :: List.append grlstX (List.append grlstY1 grlstY2)
 
                 | _ -> []
               )
