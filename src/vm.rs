@@ -60,7 +60,7 @@ pub fn execute_file(filename: &str) -> Result<u32, Error> {
 pub fn execute_bytes(v: Vec<u8>) -> Result<u32, ExecutionError> {
     let mut m = Machine::new();
     m.execute_bytes(v)?;
-    m.get(&Reg(0)).ok_or(ExecutionError::NoResult)
+    m.get(Reg(0)).map_err(|_| ExecutionError::NoResult)
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -86,8 +86,10 @@ impl Machine {
         }
     }
 
-    fn get(&self, r: &Reg) -> Option<u32> {
-        self.file.get(r)
+    fn get(&self, r: Reg) -> Result<u32, ExecutionError> {
+        self.file
+            .get(&r)
+            .ok_or(ExecutionError::NoSuchRegister { reg: r })
     }
 
     fn insert(&mut self, r: Reg, w: u32) {
@@ -142,9 +144,7 @@ impl Machine {
         let upper = extra_bits << 3;
         let src = Reg(lower | upper);
 
-        let v = self
-            .get(&src)
-            .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
+        let v = self.get(src)?;
         self.insert(Reg(b & 0b11111), v);
         Ok(())
     }
@@ -175,12 +175,8 @@ impl Machine {
         let src2 = Reg(b & 0b11111);
 
         let dest = Reg(must_next(iter)? >> 3);
-        let v1 = self
-            .get(&src1)
-            .ok_or(ExecutionError::NoSuchRegister { reg: src1 })?;
-        let v2 = self
-            .get(&src2)
-            .ok_or(ExecutionError::NoSuchRegister { reg: src2 })?;
+        let v1 = self.get(src1)?;
+        let v2 = self.get(src2)?;
         self.insert(dest, v1.wrapping_add(v2));
         Ok(())
     }
@@ -198,9 +194,7 @@ impl Machine {
         let src = Reg(lower | upper);
 
         let w = decode_u32(iter)?;
-        let v = self
-            .get(&src)
-            .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
+        let v = self.get(src)?;
         self.insert(Reg(b & 0b11111), v.wrapping_add(w));
         Ok(())
     }
