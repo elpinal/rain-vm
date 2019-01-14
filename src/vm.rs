@@ -58,15 +58,19 @@ pub fn execute_file(filename: &str) -> Result<u32, Error> {
 
 /// Executes a sequence of bytes.
 pub fn execute_bytes(v: Vec<u8>) -> Result<u32, ExecutionError> {
-    let mut f = File(HashMap::new());
-    f.execute_bytes(v)?;
-    f.get(&Reg(0)).ok_or(ExecutionError::NoResult)
+    let mut m = Machine::new();
+    m.execute_bytes(v)?;
+    m.get(&Reg(0)).ok_or(ExecutionError::NoResult)
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Reg(u8);
 
 struct File(HashMap<Reg, u32>);
+
+struct Machine {
+    file: File,
+}
 
 // Shifts 3 bits.
 const SHIFT_OPCODE: u8 = 3;
@@ -75,7 +79,21 @@ const OPCODE_MOVE: u8 = 0;
 const OPCODE_HALT: u8 = 1;
 const OPCODE_ADD: u8 = 2;
 
-impl File {
+impl Machine {
+    fn new() -> Self {
+        Machine {
+            file: File(HashMap::new()),
+        }
+    }
+
+    fn get(&self, r: &Reg) -> Option<u32> {
+        self.file.get(r)
+    }
+
+    fn insert(&mut self, r: Reg, w: u32) {
+        self.file.insert(r, w)
+    }
+
     /// Executes a sequence of bytes.
     pub fn execute_bytes(&mut self, v: Vec<u8>) -> Result<(), ExecutionError> {
         let mut iter = v.iter();
@@ -111,14 +129,6 @@ impl File {
                 b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
             }
         }
-    }
-
-    fn get(&self, r: &Reg) -> Option<u32> {
-        self.0.get(r).cloned()
-    }
-
-    fn insert(&mut self, r: Reg, w: u32) {
-        self.0.insert(r, w);
     }
 
     /// "Move register" instruction.
@@ -193,6 +203,16 @@ impl File {
             .ok_or(ExecutionError::NoSuchRegister { reg: src })?;
         self.insert(Reg(b & 0b11111), v.wrapping_add(w));
         Ok(())
+    }
+}
+
+impl File {
+    fn get(&self, r: &Reg) -> Option<u32> {
+        self.0.get(r).cloned()
+    }
+
+    fn insert(&mut self, r: Reg, w: u32) {
+        self.0.insert(r, w);
     }
 }
 
