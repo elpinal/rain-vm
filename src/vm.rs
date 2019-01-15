@@ -43,6 +43,10 @@ pub enum ExecutionError {
     /// No such register.
     #[fail(display = "no such register: {:?}", reg)]
     NoSuchRegister { reg: Reg },
+
+    /// Nowhere to jump.
+    #[fail(display = "nowhere to jump to: {:?}", address)]
+    NowhereToJump { address: u32 },
 }
 
 /// Executes a file.
@@ -75,9 +79,12 @@ struct Machine {
 // Shifts 3 bits.
 const SHIFT_OPCODE: u8 = 3;
 
+const REGISTER_WIDTH: u8 = 0b11111;
+
 const OPCODE_MOVE: u8 = 0;
 const OPCODE_HALT: u8 = 1;
 const OPCODE_ADD: u8 = 2;
+const OPCODE_BNZ: u8 = 3;
 
 impl Machine {
     fn new() -> Self {
@@ -98,7 +105,7 @@ impl Machine {
 
     /// Executes a sequence of bytes.
     pub fn execute_bytes(&mut self, v: Vec<u8>) -> Result<(), ExecutionError> {
-        let mut iter = v.iter();
+        let mut iter = v.iter().skip(0);
         match iter.next() {
             None => return Err(ExecutionError::MissingVersion),
             Some(&b) => {
@@ -126,6 +133,14 @@ impl Machine {
                         self.add_reg(&mut iter, bits)?;
                     } else {
                         self.add_imm(&mut iter, bits)?;
+                    }
+                }
+                OPCODE_BNZ => {
+                    if let Some(w) = self.bnz(&mut iter)? {
+                        if v.len() <= w as usize {
+                            return Err(ExecutionError::NowhereToJump { address: w });
+                        }
+                        iter = v.iter().skip(w as usize);
                     }
                 }
                 b => return Err(ExecutionError::NoSuchInstruction { opcode: b }),
@@ -197,6 +212,21 @@ impl Machine {
         let v = self.get(src)?;
         self.insert(Reg(b & 0b11111), v.wrapping_add(w));
         Ok(())
+    }
+
+    /// "Branch if not zero" instruction.
+    fn bnz<'a, T>(&mut self, iter: &mut T) -> Result<Option<u32>, ExecutionError>
+    where
+        T: Iterator<Item = &'a u8>,
+    {
+        let r = Reg(must_next(iter)? & REGISTER_WIDTH);
+        let w = self.get(r)?;
+        let v = decode_u32(iter)?;
+        if w == 0 {
+            Ok(None)
+        } else {
+            Ok(Some(v))
+        }
     }
 }
 
