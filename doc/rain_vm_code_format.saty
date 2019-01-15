@@ -70,9 +70,10 @@ StdJa.document (|
       After passing the version check, then the body of the program is executed.
       The first byte of the body contains an opcode.
       An opcode is the 5 most significant bits.
-      Currently, the only opcodes are 0, indicating \quote{move} instruction,
+      Currently, the available opcodes are 0, indicating \quote{move} instruction,
       1, indicating \quote{halt} instruction,
-      and 2, indicating \quote{add} instruction.
+      2, indicating \quote{add} instruction,
+      and 3, indicating \quote{bnz} (\italic{branch if not zero}) instruction.
 
       \emph{The result register}, R0, is a special register whose content is treated as the output of the execution.
       Reading instructions until reaching a \quote{halt} instruction, and then the execution ends successfully.
